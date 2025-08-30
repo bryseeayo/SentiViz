@@ -23,8 +23,5 @@ jobs:
           npm i -D prettier eslint eslint-config-prettier
       - name: Prettier check
         run: npx prettier --check .
-        continue-on-error: true
       - name: ESLint
         run: npx eslint .
-        continue-on-error: true
-
