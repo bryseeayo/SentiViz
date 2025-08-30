@@ -1,5 +1,10 @@
 # VB Daily — Reactions Infographic
 
+[![Pages](https://github.com/bryseeayo/SentiViz/actions/workflows/pages.yml/badge.svg)](https://github.com/bryseeayo/SentiViz/actions/workflows/pages.yml)
+[![CI](https://github.com/bryseeayo/SentiViz/actions/workflows/ci.yml/badge.svg)](https://github.com/bryseeayo/SentiViz/actions/workflows/ci.yml)
+
+Live demo: https://bryseeayo.github.io/SentiViz/
+
 A zero-dependency, static web app that turns the VB Daily survey export into an infographic: sentiment over time, distribution of reactions, and trends of returning Network IDs.
 
 ## What it shows
