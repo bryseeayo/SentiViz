@@ -3,186 +3,170 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>VB Daily — Reactions Infographic</title>
-    <link rel="stylesheet" href="src/styles.css" />
+    <title>VB Daily Sentiment Dashboard</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .container {
+        max-width: 900px;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 60px 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+      h1 {
+        font-size: 42px;
+        font-weight: 700;
+        color: #1a202c;
+        margin-bottom: 12px;
+        text-align: center;
+      }
+      .subtitle {
+        font-size: 18px;
+        color: #4a5568;
+        text-align: center;
+        margin-bottom: 48px;
+      }
+      .versions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+        margin-bottom: 40px;
+      }
+      .version-card {
+        background: white;
+        border-radius: 16px;
+        padding: 32px 24px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s, box-shadow 0.2s;
+        text-decoration: none;
+        display: block;
+      }
+      .version-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      }
+      .version-tag {
+        display: inline-block;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        margin-bottom: 16px;
+      }
+      .v1-tag {
+        background: #e2e8f0;
+        color: #4a5568;
+      }
+      .v2-tag {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+      .version-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #1a202c;
+        margin-bottom: 12px;
+      }
+      .version-desc {
+        font-size: 14px;
+        color: #718096;
+        line-height: 1.6;
+        margin-bottom: 20px;
+      }
+      .btn {
+        display: inline-block;
+        padding: 12px 32px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 14px;
+        text-decoration: none;
+        transition: all 0.2s;
+      }
+      .btn-v1 {
+        background: #edf2f7;
+        color: #2d3748;
+      }
+      .btn-v1:hover {
+        background: #e2e8f0;
+      }
+      .btn-v2 {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+      .btn-v2:hover {
+        transform: scale(1.05);
+      }
+      .footer {
+        text-align: center;
+        color: #4a5568;
+        font-size: 14px;
+      }
+      .footer a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .badge {
+        display: inline-block;
+        background: #48bb78;
+        color: white;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 12px;
+        margin-left: 8px;
+        vertical-align: middle;
+      }
+    </style>
   </head>
   <body>
-    <header>
-      <h1>VB Daily — Reader Reactions</h1>
-      <p class="muted">Infographic from the survey export. All in-browser.</p>
-    </header>
+    <div class="container">
+      <h1>VB Daily Sentiment Dashboard</h1>
+      <p class="subtitle">Visualize and analyze newsletter sentiment data</p>
 
-    <section class="controls">
-      <div class="control">
-        <label for="file">Upload CSV</label>
-        <input type="file" id="file" accept=".csv,text/csv" />
-      </div>
-      <div class="control">
-        <label>Layout</label>
-        <label class="toggle"><input type="checkbox" id="editLayout"> Edit layout</label>
-      </div>
-      <div class="control">
-        <label>Audience</label>
-        <div>
-          <label class="toggle"><input type="radio" name="audMode" value="all" checked> All</label>
-          <label class="toggle"><input type="radio" name="audMode" value="new"> New</label>
-          <label class="toggle"><input type="radio" name="audMode" value="returning"> Returning</label>
+      <div class="versions">
+        <div class="version-card">
+          <span class="version-tag v1-tag">Classic</span>
+          <h2 class="version-title">Version 1</h2>
+          <p class="version-desc">
+            Original analytics dashboard with comprehensive data visualizations, outlier detection, and detailed reporting.
+          </p>
+          <a href="v1/" class="btn btn-v1">Open V1</a>
         </div>
-      </div>
-      <div class="control">
-        <label>Outlier Mode</label>
-        <select id="outlierMode">
-          <option value="zscore" selected>Z-score</option>
-          <option value="mad">MAD (robust)</option>
-        </select>
-      </div>
-      <div class="control">
-        <label>&nbsp;</label>
-        <label class="toggle"><input type="checkbox" id="showBands" checked> Show control bands</label>
-      </div>
-      <div class="control">
-        <label>Export</label>
-        <div class="btn-row">
-          <button id="exportPdf" class="button primary">Export PDF</button>
-          <button id="exportPngSheet" class="button">PNG Sheet</button>
-          <button id="exportJson" class="button">Analysis JSON</button>
-        </div>
-      </div>
-    </section>
 
-    <section class="summary">
-      <div class="card"><div class="label">Total Responses</div><div class="value" id="mTotal">—</div></div>
-      <div class="card"><div class="label">Window (UTC)</div><div class="value" id="mWindow">—</div></div>
-      <div class="card"><div class="label">Unique IDs</div><div class="value" id="mUnique">—</div></div>
-      <div class="card"><div class="label">Repeaters</div><div class="value" id="mRepeaters">—</div></div>
-    </section>
+        <div class="version-card">
+          <span class="version-tag v2-tag">
+            Latest
+            <span class="badge">NEW</span>
+          </span>
+          <h2 class="version-title">Version 2</h2>
+          <p class="version-desc">
+            Modern redesign with enhanced UX, real-time insights, predictive analytics, and mobile-first responsive design.
+          </p>
+          <a href="v2/" class="btn btn-v2">Open V2</a>
+        </div>
+      </div>
 
-    <section class="layout charts">
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Emoji Distribution Over Time</h2>
-          <div class="legend" id="legendEmoji"></div>
-        </div>
-        <div class="toolbar"><label class="toggle"><input type="radio" name="stackMode" value="counts" checked> Counts</label> <label class="toggle"><input type="radio" name="stackMode" value="share"> Share %</label></div>
-        <canvas id="emojiStacked" height="360"></canvas>
+      <div class="footer">
+        <p>All processing happens in your browser • No data uploaded</p>
+        <p style="margin-top: 8px;">
+          <a href="https://github.com/bryseeayo/SentiViz" target="_blank">GitHub Repository</a>
+        </p>
       </div>
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Engagement Index</h2>
-          <div class="legend" id="legendSentiment">Wow +1, Curious 0, Boring −1</div>
-        </div>
-        <canvas id="sentimentLine" height="360"></canvas>
-      </div>
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Flip Rate Over Time</h2>
-          <div class="legend">Share of returning IDs switching emoji vs prior active day</div>
-        </div>
-        <canvas id="flipRateLine" height="320"></canvas>
-      </div>
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Outlier Days</h2>
-          <div class="legend">Z-score based spikes/dips in index and emoji mix</div>
-        </div>
-        <div id="outliersList" class="table-container"></div>
-      </div>
-      <div class="panel full-span">
-        <div class="panel-head">
-          <h2>Calendar Heatmap</h2>
-          <div class="legend">Daily Wow share (darker green = higher)</div>
-        </div>
-        <canvas id="calendarHeatmap" height="260"></canvas>
-      </div>
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Daily Mix — Ternary</h2>
-          <div class="legend">Each point is a day; position encodes Wow/Curious/Boring mix, size = total responses.</div>
-        </div>
-        <canvas id="ternaryMix" height="420"></canvas>
-      </div>
-      <div class="panel full-span">
-        <div class="panel-head">
-          <h2>Weekday Patterns (PT)</h2>
-          <div class="legend">Mon–Fri • Hour vs day • Color = count (selected) • Label = responses</div>
-          <div class="toolbar" style="margin:0">
-            <label class="toggle"><input type="radio" name="wkdMetric" value="total" checked> Total</label>
-            <label class="toggle"><input type="radio" name="wkdMetric" value="wow"> 🤯 Wow</label>
-            <label class="toggle"><input type="radio" name="wkdMetric" value="curious"> 🤔 Curious</label>
-            <label class="toggle"><input type="radio" name="wkdMetric" value="boring"> 😴 Boring</label>
-          </div>
-        </div>
-        <canvas id="dowHeatmap" height="520"></canvas>
-      </div>
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Top Returning Network IDs</h2>
-          <div class="legend" id="legendIDs"></div>
-        </div>
-        <canvas id="topIDsBar" height="420"></canvas>
-      </div>
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Emoji Transitions (Returning IDs)</h2>
-          <div class="legend">Probability of next active-day emoji given current</div>
-        </div>
-        <canvas id="transitionsMatrix" height="260"></canvas>
-      </div>
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Sentiment Insights</h2>
-          <div class="legend">Peaks, averages, and recent trend for 🤯/🤔/😴</div>
-        </div>
-        <div id="sentimentInsights" class="insights-grid"></div>
-      </div>
-      <div class="panel">
-        <div class="panel-head">
-          <h2>First-Sentiment Cohorts</h2>
-          <div class="legend">Retention by first emoji at D+1 / D+3 / D+7</div>
-        </div>
-        <canvas id="cohortBars" height="240"></canvas>
-      </div>
-      <div class="panel full-span">
-        <div class="panel-head">
-          <h2>Day Details</h2>
-          <div class="legend">Click any calendar day to drill in</div>
-        </div>
-        <div id="dayDrilldown" class="table-container"></div>
-      </div>
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Retention Overview</h2>
-          <div class="legend">Share of first-seen IDs returning within 1/3/7 days</div>
-        </div>
-        <canvas id="retentionBars" height="180"></canvas>
-      </div>
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Top 3 Returning Clickers — Stories</h2>
-          <div class="legend">Condensed journey and reaction mix</div>
-        </div>
-        <div id="storiesContainer" class="stories-grid"></div>
-      </div>
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Returning Rate Over Time</h2>
-          <div class="legend">Share of daily responses from previously seen IDs</div>
-        </div>
-        <canvas id="returningRateLine" height="360"></canvas>
-      </div>
-    </section>
-
-    <section class="layout">
-      <div class="panel">
-        <h2>Recent Responses</h2>
-        <div id="preview" class="table-container"></div>
-      </div>
-    </section>
-
-    <footer>
-      <div class="muted">All processing happens in your browser. No uploads.</div>
-    </footer>
-
-    <script src="src/app.js"></script>
+    </div>
   </body>
-  </html>
+</html>

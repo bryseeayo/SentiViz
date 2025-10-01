@@ -1,13 +1,53 @@
-# VB Daily — Reactions Infographic
+# VB Daily Sentiment Dashboard
 
 [![Pages](https://github.com/bryseeayo/SentiViz/actions/workflows/pages.yml/badge.svg)](https://github.com/bryseeayo/SentiViz/actions/workflows/pages.yml)
 [![CI](https://github.com/bryseeayo/SentiViz/actions/workflows/ci.yml/badge.svg)](https://github.com/bryseeayo/SentiViz/actions/workflows/ci.yml)
 
-Live demo: https://bryseeayo.github.io/SentiViz/
+**Live demo:** https://bryseeayo.github.io/SentiViz/
 
-A zero-dependency, static web app that turns the VB Daily survey export into an infographic: sentiment over time, distribution of reactions, and trends of returning Network IDs.
+A powerful, zero-dependency web application for visualizing VB Daily newsletter sentiment data. Track reader emotions, engagement trends, and audience insights with interactive charts and predictive analytics.
 
-## What it shows
+## 🎉 What's New in V2
+
+**[Try V2 →](https://bryseeayo.github.io/SentiViz/v2/)**  |  **[V1 Classic →](https://bryseeayo.github.io/SentiViz/v1/)**
+
+Version 2 brings a complete redesign with:
+- 🎨 **Modern UI** - Clean, responsive design with mobile-first approach
+- ⚡ **Smart Insights** - Automated trend detection and natural language insights
+- 📈 **Predictive Analytics** - 7-day sentiment forecasting with confidence intervals
+- 🔍 **Enhanced Charts** - Gauge, velocity, and improved visualizations
+- 📊 **Better UX** - Intuitive controls, real-time updates, drag-and-drop upload
+- 🏗️ **Modular Architecture** - Clean separation of concerns for maintainability
+
+### Version Comparison
+
+| Feature | V1 (Classic) | V2 (Modern) |
+|---------|-------------|-------------|
+| Design | Dark analytics theme | Light, modern design system |
+| Charts | 15+ detailed visualizations | 12+ focused visualizations |
+| Insights | Manual analysis | Auto-generated insights |
+| Forecasting | ❌ | ✅ 7-day predictions |
+| Mobile | Basic | Fully responsive |
+| Architecture | Monolithic | Modular (13 files) |
+| Best For | Deep data exploration | Quick insights & reporting |
+
+## Features
+
+### V2 Features
+- 📊 Real-time sentiment gauge and score
+- 📈 Sentiment trends with anomaly detection
+- 🎯 Emotion breakdown (Wow/Curious/Boring)
+- ⚡ Sentiment velocity tracking
+- 📅 Interactive calendar heatmap
+- 🔮 7-day sentiment forecasting
+- 👥 Audience retention analysis
+- 🏆 Top contributor tracking
+- 🔄 Emotion transition matrix
+- 📱 Fully responsive design
+- 💡 Auto-generated insights
+- 📤 Export to PDF, JSON, CSV, PNG
+
+### V1 Classic Features
 - Overall counts and coverage window (UTC)
 - Emoji distribution per day as a stacked area
 - Emoji distribution toggle: counts or share % per day
