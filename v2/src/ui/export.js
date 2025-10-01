@@ -286,10 +286,10 @@ const ExportModule = {
 
       doc.setFontSize(10);
       const metrics = [
-        `Total Reactions: ${data.total?.toLocaleString() || 'N/A'}`,
-        `Unique Users: ${data.uniqueUsers?.toLocaleString() || 'N/A'}`,
-        `Repeating Users: ${data.repeaters?.toLocaleString() || 'N/A'}`,
-        `Days in Period: ${data.days?.length || 'N/A'}`
+        `Total Reactions: ${(data.total != null ? data.total.toLocaleString() : 'N/A')}`,
+        `Unique Users: ${(data.uniqueUsers != null ? data.uniqueUsers.toLocaleString() : 'N/A')}`,
+        `Repeating Users: ${(data.repeaters != null ? data.repeaters.toLocaleString() : 'N/A')}`,
+        `Days in Period: ${(data.days ? data.days.length : 'N/A')}`
       ];
 
       metrics.forEach(metric => {

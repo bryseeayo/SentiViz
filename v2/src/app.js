@@ -99,7 +99,7 @@ const VBSentimentApp = {
       });
 
       this.elements.dropZone.addEventListener('click', () => {
-        this.elements.fileInput?.click();
+        if (this.elements.fileInput) this.elements.fileInput.click();
       });
     }
 
@@ -414,7 +414,7 @@ const VBSentimentApp = {
     if (elUsers) elUsers.textContent = Utils.formatNumber(processedData.uniqueUsers);
 
     // Update sentiment score
-    const sentimentScore = sentimentAnalysis?.overallAverage || 0;
+    const sentimentScore = (sentimentAnalysis && sentimentAnalysis.overallAverage) || 0;
     const sentimentPercent = ((sentimentScore + 1) / 2 * 100).toFixed(0); // Convert -1 to 1 range to 0-100%
     const elSent = document.getElementById('metricSentiment');
     if (elSent) elSent.textContent = `${sentimentPercent}%`;
@@ -488,7 +488,7 @@ const VBSentimentApp = {
    * Update all charts
    */
   updateCharts() {
-    const { processedData, sentimentAnalysis, forecast } = this.state;
+    const { processedData } = this.state;
 
     if (!processedData) return;
 
@@ -506,6 +506,15 @@ const VBSentimentApp = {
 
     // Calendar heatmap
     this.updateCalendarHeatmap();
+
+    // Additional charts
+    this.updateVelocityChart();
+    this.updateRetentionChart();
+    this.updateForecastChart();
+    this.updateTimePatternChart();
+    this.updateWeekdayChart();
+    this.updateTransitionsChart();
+    this.updateRecentActivity();
   },
 
   /**
@@ -531,14 +540,16 @@ const VBSentimentApp = {
     console.log('Drawing sentiment trend...');
 
     const { days, sentimentSeries } = this.state.processedData;
-    const { controlBands, anomalies } = this.state.sentimentAnalysis || {};
+    const sa = this.state.sentimentAnalysis || {};
+    const controlBands = sa.controlBands;
+    const anomaliesCombined = sa.anomalies && sa.anomalies.combined ? sa.anomalies.combined : [];
 
     // Prepare markers for anomalies
-    const markers = anomalies?.combined.map(a => ({
+    const markers = anomaliesCombined.map(a => ({
       index: a.index,
       color: a.type === 'spike' ? '#34d399' : '#f87171',
       label: a.type
-    })) || [];
+    }));
 
     LineChart.draw(canvas, {
       labels: days.map(d => d.slice(5)), // MM-DD
@@ -666,6 +677,169 @@ const VBSentimentApp = {
       maxColor: '#34d399',
       neutralColor: '#fbbf24'
     });
+  },
+
+  /**
+   * Update velocity chart
+   */
+  updateVelocityChart() {
+    const canvas = document.getElementById('velocityChart');
+    if (!canvas || !this.state.processedData) return;
+    const values = SentimentAnalytics.calculateVelocity(this.state.processedData.sentimentSeries);
+    LineChart.draw(canvas, {
+      labels: this.state.processedData.days.map(d => d.slice(5)),
+      values
+    }, {
+      title: 'Sentiment Velocity',
+      yLabel: 'Δ per 3 days',
+      yMin: Math.min(-1, Math.min(...values)),
+      yMax: Math.max(1, Math.max(...values)),
+      lineColor: '#f59e0b',
+      fillArea: true,
+      fillOpacity: 0.15
+    });
+  },
+
+  /**
+   * Update retention chart
+   */
+  updateRetentionChart() {
+    const canvas = document.getElementById('retentionChart');
+    if (!canvas || !this.state.processedData) return;
+    const r = DataProcessor.calculateRetention(this.state.processedData.userItems, this.state.processedData.days);
+    const labels = ['1d', '3d', '7d'];
+    const values = [r.d1, r.d3, r.d7].map(v => Math.round(v * 100));
+    BarChart.draw(canvas, { labels, values }, {
+      title: 'Retention (return within days)',
+      xLabel: 'Window',
+      yLabel: '% Users',
+      showValues: true,
+      barColor: '#3b82f6',
+      formatValue: v => `${v}%`
+    });
+  },
+
+  /**
+   * Update forecast chart
+   */
+  updateForecastChart() {
+    const canvas = document.getElementById('forecastChart');
+    if (!canvas || !this.state.processedData || !this.state.forecast) return;
+    const histLabels = this.state.processedData.days.map(d => d.slice(5));
+    const histValues = this.state.processedData.sentimentSeries;
+    const ens = this.state.forecast.ensemble || this.state.forecast.simple || this.state.forecast.exponential;
+    if (!ens || !ens.predictions || ens.predictions.length === 0) return;
+    LineChart.draw(canvas, {
+      labels: histLabels,
+      values: histValues
+    }, {
+      title: 'Forecast (7 days)',
+      yLabel: 'Sentiment',
+      yMin: -1,
+      yMax: 1,
+      lineColor: '#22c55e',
+      forecast: {
+        predictions: ens.predictions,
+        upper: ens.confidence && ens.confidence.upper ? ens.confidence.upper : null,
+        lower: ens.confidence && ens.confidence.lower ? ens.confidence.lower : null
+      }
+    });
+  },
+
+  /**
+   * Update time pattern (hour of day)
+   */
+  updateTimePatternChart() {
+    const canvas = document.getElementById('timePatternChart');
+    if (!canvas || !this.state.processedData) return;
+    const hours = new Array(24).fill(0);
+    this.state.processedData.rawData.forEach(item => {
+      const d = new Date(item.date);
+      hours[d.getHours()] += 1;
+    });
+    BarChart.draw(canvas, {
+      labels: hours.map((_, i) => i.toString().padStart(2, '0')),
+      values: hours
+    }, {
+      title: 'Responses by Hour',
+      xLabel: 'Hour',
+      yLabel: 'Responses',
+      barColor: '#a78bfa',
+      showValues: false
+    });
+  },
+
+  /**
+   * Update weekday chart
+   */
+  updateWeekdayChart() {
+    const canvas = document.getElementById('weekdayChart');
+    if (!canvas || !this.state.processedData) return;
+    const sums = new Array(7).fill(0);
+    const counts = new Array(7).fill(0);
+    this.state.processedData.rawData.forEach(item => {
+      const w = new Date(item.date).getDay();
+      const wgt = DataProcessor.EMOJI_WEIGHTS[item.emoji];
+      if (wgt !== undefined) {
+        sums[w] += wgt;
+        counts[w] += 1;
+      }
+    });
+    const avg = sums.map((s, i) => counts[i] > 0 ? s / counts[i] : 0);
+    const labels = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    BarChart.draw(canvas, { labels, values: avg }, {
+      title: 'Avg Sentiment by Weekday',
+      xLabel: 'Weekday',
+      yLabel: 'Average Sentiment',
+      barColor: '#f87171',
+      showValues: false
+    });
+  },
+
+  /**
+   * Update transitions chart (render as bar categories)
+   */
+  updateTransitionsChart() {
+    const canvas = document.getElementById('transitionsMatrix');
+    if (!canvas || !this.state.processedData) return;
+    const t = DataProcessor.calculateTransitions(this.state.processedData.userItems, this.state.processedData.days);
+    const labels = Object.keys(t);
+    const values = labels.map(k => t[k]);
+    BarChart.draw(canvas, { labels, values }, {
+      title: 'Emoji Transitions (day-to-day)',
+      xLabel: 'From→To',
+      yLabel: 'Count',
+      showValues: false,
+      barColor: '#10b981',
+      maxBars: 9
+    });
+  },
+
+  /**
+   * Update recent activity list
+   */
+  updateRecentActivity() {
+    const container = document.getElementById('recentActivity');
+    if (!container || !this.state.processedData) return;
+    const items = this.state.processedData.rawData.slice(-50).reverse();
+    if (items.length === 0) {
+      container.innerHTML = '<div class="empty">No recent activity</div>';
+      return;
+    }
+    const rows = items.map(it => {
+      const d = new Date(it.date);
+      const dateStr = `${d.toISOString().split('T')[0]} ${d.toTimeString().slice(0,5)}`;
+      const id = it.networkId || 'unknown';
+      return `<div class="row" style=\"display:flex;justify-content:space-between;padding:6px 8px;border-bottom:1px solid #111827;\">`
+           + `<span style=\"min-width:70px;\">${it.emoji}</span>`
+           + `<span style=\"flex:1;color:#e5e7eb;\">${id}</span>`
+           + `<span style=\"color:#9ca3af;\">${dateStr}</span>`
+           + `</div>`;
+    }).join('');
+    const header = `<div class=\"hdr\" style=\"display:flex;justify-content:space-between;padding:6px 8px;color:#94a3b8;border-bottom:1px solid #0b1220;\">`
+                 + `<span>Emoji</span><span>User</span><span>When</span>`
+                 + `</div>`;
+    container.innerHTML = header + rows;
   },
 
   /**

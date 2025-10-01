@@ -315,11 +315,13 @@ const UIControls = {
     };
 
     if (metricElements.totalReactions) {
-      metricElements.totalReactions.textContent = metrics.totalReactions?.toLocaleString() || '0';
+      const v = metrics.totalReactions;
+      metricElements.totalReactions.textContent = (v !== undefined && v !== null) ? v.toLocaleString() : '0';
     }
 
     if (metricElements.uniqueUsers) {
-      metricElements.uniqueUsers.textContent = metrics.uniqueUsers?.toLocaleString() || '0';
+      const v = metrics.uniqueUsers;
+      metricElements.uniqueUsers.textContent = (v !== undefined && v !== null) ? v.toLocaleString() : '0';
     }
 
     if (metricElements.avgSentiment) {
