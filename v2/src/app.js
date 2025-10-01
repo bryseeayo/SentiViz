@@ -175,8 +175,11 @@ const VBSentimentApp = {
       return;
     }
 
-    if (!file.name.endsWith('.csv')) {
-      console.error('File is not CSV:', file.name);
+    // Accept .csv (case-insensitive) and common CSV MIME types
+    const nameOk = /\.csv$/i.test(file.name || '');
+    const typeOk = /text\/csv|application\/vnd\.ms-excel/i.test(file.type || '');
+    if (!nameOk && !typeOk) {
+      console.error('File is not recognized as CSV:', file.name, file.type);
       alert('Please upload a CSV file');
       return;
     }
@@ -216,6 +219,11 @@ const VBSentimentApp = {
       // Process data
       console.log('Processing data...');
       await this.processData();
+
+      // Reset file input to allow re-selecting the same file later
+      if (this.elements.fileInput) {
+        this.elements.fileInput.value = '';
+      }
 
       alert(`Loaded ${this.state.rawData.length} reactions successfully!`);
       console.log('File upload complete!');
