@@ -556,37 +556,67 @@ const VBSentimentApp = {
     });
 
     // Update percentage displays
-    const total = distribution.total;
-    document.getElementById('wowPercent')?.textContent = `${((distribution.counts['🤯'] / total) * 100).toFixed(1)}%`;
-    document.getElementById('curiousPercent')?.textContent = `${((distribution.counts['🤔'] / total) * 100).toFixed(1)}%`;
-    document.getElementById('boringPercent')?.textContent = `${((distribution.counts['😴'] / total) * 100).toFixed(1)}%`;
+    const total = (distribution.counts['🤯'] || 0) + (distribution.counts['🤔'] || 0) + (distribution.counts['😴'] || 0);
+    if (total > 0) {
+      document.getElementById('wowPercent')?.textContent = `${((distribution.counts['🤯'] / total) * 100).toFixed(1)}%`;
+      document.getElementById('curiousPercent')?.textContent = `${((distribution.counts['🤔'] / total) * 100).toFixed(1)}%`;
+      document.getElementById('boringPercent')?.textContent = `${((distribution.counts['😴'] / total) * 100).toFixed(1)}%`;
+    } else {
+      document.getElementById('wowPercent')?.textContent = '—';
+      document.getElementById('curiousPercent')?.textContent = '—';
+      document.getElementById('boringPercent')?.textContent = '—';
+    }
   },
 
   /**
-   * Update top users bar chart
+   * Update Top Contributors list (renders into #topContributorsList)
    */
   updateTopUsersChart() {
-    const canvas = document.getElementById('topUsersChart');
-    if (!canvas || !this.state.processedData) return;
+    if (!this.state.processedData) return;
 
-    const { topUsers } = this.state.processedData;
+    const container = document.getElementById('topContributorsList');
+    if (!container) return;
+
+    const { topUsers, total } = this.state.processedData;
     const top10 = topUsers.slice(0, 10);
 
     if (top10.length === 0) {
-      BarChart.draw(canvas, { labels: [], values: [] });
+      container.innerHTML = '<div class="empty">No active readers yet</div>';
       return;
     }
 
-    BarChart.draw(canvas, {
-      labels: top10.map(([id]) => id.slice(0, 15)),
-      values: top10.map(([, count]) => count)
-    }, {
-      title: 'Top 10 Most Active Users',
-      orientation: 'horizontal',
-      yLabel: 'User',
-      xLabel: 'Reactions',
-      showValues: true
-    });
+    const rows = top10.map(([id, count], index) => {
+      const pct = total > 0 ? ((count / total) * 100).toFixed(1) : '0.0';
+      const label = id || 'unknown';
+      const color = Utils.stringToColor(label);
+      return `
+        <div class="list-row" style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid #1f2937;">
+          <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+            <span style="width:20px;color:#94a3b8;">${index + 1}</span>
+            <span style="width:10px;height:10px;border-radius:9999px;background:${color};display:inline-block;"></span>
+            <span title="${label}" style="color:#e5e7eb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">${label}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="color:#9ca3af;min-width:48px;text-align:right;">${pct}%</span>
+            <span style="color:#f1f5f9;font-variant-numeric:tabular-nums;min-width:32px;text-align:right;">${count}</span>
+          </div>
+        </div>`;
+    }).join('');
+
+    // Header row
+    const header = `
+      <div class="list-header" style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;color:#94a3b8;border-bottom:1px solid #111827;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="width:20px;"></span>
+          <span>User</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span>% of total</span>
+          <span>Reactions</span>
+        </div>
+      </div>`;
+
+    container.innerHTML = header + rows;
   },
 
   /**
