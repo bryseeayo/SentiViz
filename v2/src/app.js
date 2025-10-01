@@ -407,19 +407,23 @@ const VBSentimentApp = {
 
     console.log('Updating metrics...');
 
-    // Update metric values
-    document.getElementById('metricTotal')?.textContent = Utils.formatNumber(processedData.total);
-    document.getElementById('metricUsers')?.textContent = Utils.formatNumber(processedData.uniqueUsers);
+    // Update metric values (avoid optional chaining on assignment)
+    const elTotal = document.getElementById('metricTotal');
+    if (elTotal) elTotal.textContent = Utils.formatNumber(processedData.total);
+    const elUsers = document.getElementById('metricUsers');
+    if (elUsers) elUsers.textContent = Utils.formatNumber(processedData.uniqueUsers);
 
     // Update sentiment score
     const sentimentScore = sentimentAnalysis?.overallAverage || 0;
     const sentimentPercent = ((sentimentScore + 1) / 2 * 100).toFixed(0); // Convert -1 to 1 range to 0-100%
-    document.getElementById('metricSentiment')?.textContent = `${sentimentPercent}%`;
+    const elSent = document.getElementById('metricSentiment');
+    if (elSent) elSent.textContent = `${sentimentPercent}%`;
 
     // Calculate engagement rate (% of unique users who responded)
     const engagementRate = processedData.uniqueUsers > 0 ?
       ((processedData.total / processedData.uniqueUsers) * 100).toFixed(1) : '0';
-    document.getElementById('metricEngagement')?.textContent = `${engagementRate}%`;
+    const elEng = document.getElementById('metricEngagement');
+    if (elEng) elEng.textContent = `${engagementRate}%`;
 
     // Update change indicators (compare last 7 days vs previous 7 days)
     this.updateMetricChanges();
@@ -575,14 +579,17 @@ const VBSentimentApp = {
 
     // Update percentage displays
     const total = (distribution.counts['🤯'] || 0) + (distribution.counts['🤔'] || 0) + (distribution.counts['😴'] || 0);
+    const wowEl = document.getElementById('wowPercent');
+    const curEl = document.getElementById('curiousPercent');
+    const borEl = document.getElementById('boringPercent');
     if (total > 0) {
-      document.getElementById('wowPercent')?.textContent = `${((distribution.counts['🤯'] / total) * 100).toFixed(1)}%`;
-      document.getElementById('curiousPercent')?.textContent = `${((distribution.counts['🤔'] / total) * 100).toFixed(1)}%`;
-      document.getElementById('boringPercent')?.textContent = `${((distribution.counts['😴'] / total) * 100).toFixed(1)}%`;
+      if (wowEl) wowEl.textContent = `${((distribution.counts['🤯'] / total) * 100).toFixed(1)}%`;
+      if (curEl) curEl.textContent = `${((distribution.counts['🤔'] / total) * 100).toFixed(1)}%`;
+      if (borEl) borEl.textContent = `${((distribution.counts['😴'] / total) * 100).toFixed(1)}%`;
     } else {
-      document.getElementById('wowPercent')?.textContent = '—';
-      document.getElementById('curiousPercent')?.textContent = '—';
-      document.getElementById('boringPercent')?.textContent = '—';
+      if (wowEl) wowEl.textContent = '—';
+      if (curEl) curEl.textContent = '—';
+      if (borEl) borEl.textContent = '—';
     }
   },
 
