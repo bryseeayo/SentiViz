@@ -92,6 +92,16 @@ body {
   overflow-x: hidden;
 }
 
+/* Utility: visually hidden but focusable/clickable */
+.visually-hidden {
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
 /* Navbar */
 .navbar {
   background: var(--bg-elevated);

@@ -107,14 +107,11 @@ const VBSentimentApp = {
     if (this.elements.browseBtn) {
       console.log('Setting up browse button click handler');
       this.elements.browseBtn.addEventListener('click', (e) => {
+        // Using label[for] to open file dialog cross-browser
         console.log('Browse button clicked!');
-        e.preventDefault();
-        e.stopPropagation();
+        // Ensure file input is interactable for Safari
         if (this.elements.fileInput) {
-          console.log('Triggering file input click');
-          this.elements.fileInput.click();
-        } else {
-          console.error('File input element not found!');
+          this.ensureFileInputInteractable();
         }
       });
     } else {
@@ -151,6 +148,19 @@ const VBSentimentApp = {
       this.elements.exportPngBtn.addEventListener('click', () => {
         this.exportAllCharts();
       });
+    }
+  },
+
+  // Ensure file input can be triggered programmatically (Safari fix)
+  ensureFileInputInteractable() {
+    const input = this.elements.fileInput;
+    if (!input) return;
+    if (input.hasAttribute('hidden')) input.removeAttribute('hidden');
+    // If input is display:none, make it visually hidden instead
+    const style = window.getComputedStyle(input);
+    if (style.display === 'none') {
+      input.style.display = 'block';
+      input.classList.add('visually-hidden');
     }
   },
 
