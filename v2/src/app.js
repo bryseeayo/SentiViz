@@ -158,24 +158,38 @@ const VBSentimentApp = {
    * Handle file upload
    */
   async handleFileUpload(file) {
-    if (!file) return;
+    console.log('handleFileUpload called with file:', file);
 
-    if (!file.name.endsWith('.csv')) {
-      UIControls.showError('Please upload a CSV file');
+    if (!file) {
+      console.error('No file provided');
       return;
     }
 
-    UIControls.showLoading(true);
+    if (!file.name.endsWith('.csv')) {
+      console.error('File is not CSV:', file.name);
+      alert('Please upload a CSV file');
+      return;
+    }
+
+    console.log('Starting file processing...');
+    this.showLoading(true);
 
     try {
       // Read file
+      console.log('Reading file...');
       const text = await this.readFileAsText(file);
+      console.log('File read, length:', text.length);
 
       // Parse CSV
+      console.log('Parsing CSV...');
       const parsed = CSVParser.parse(text);
+      console.log('Parsed rows:', parsed.rows.length);
+
       const vbData = CSVParser.extractVBDailyData(parsed.rows);
+      console.log('Extracted VB data:', vbData.length);
 
       // Validate
+      console.log('Validating data...');
       const validation = CSVParser.validate(vbData);
       if (!validation.valid) {
         throw new Error(validation.error);
@@ -187,16 +201,19 @@ const VBSentimentApp = {
 
       // Store raw data
       this.state.rawData = validation.validRows;
+      console.log('Stored raw data:', this.state.rawData.length, 'rows');
 
       // Process data
+      console.log('Processing data...');
       await this.processData();
 
-      UIControls.showSuccess(`Loaded ${this.state.rawData.length} reactions successfully!`);
+      alert(`Loaded ${this.state.rawData.length} reactions successfully!`);
+      console.log('File upload complete!');
     } catch (error) {
       console.error('File upload error:', error);
-      UIControls.showError(`Failed to load file: ${error.message}`);
+      alert(`Failed to load file: ${error.message}`);
     } finally {
-      UIControls.showLoading(false);
+      this.showLoading(false);
     }
   },
 
@@ -643,6 +660,15 @@ const VBSentimentApp = {
 
     const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
     await ExportModule.exportAllChartsPNG(canvases, `vb-dashboard-${timestamp}.png`);
+  },
+
+  /**
+   * Show/hide loading overlay
+   */
+  showLoading(show = true) {
+    if (this.elements.loadingOverlay) {
+      this.elements.loadingOverlay.style.display = show ? 'flex' : 'none';
+    }
   }
 };
 
