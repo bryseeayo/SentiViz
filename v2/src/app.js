@@ -16,6 +16,7 @@ const VBSentimentApp = {
   elements: {
     fileInput: null,
     dropZone: null,
+    browseBtn: null,
     loadSampleBtn: null,
     exportJsonBtn: null,
     exportCsvBtn: null,
@@ -33,7 +34,8 @@ const VBSentimentApp = {
 
     // Get DOM elements
     this.elements.fileInput = document.getElementById('fileInput');
-    this.elements.dropZone = document.getElementById('dropZone');
+    this.elements.dropZone = document.getElementById('uploadZone');
+    this.elements.browseBtn = document.getElementById('browseBtn');
     this.elements.loadSampleBtn = document.getElementById('loadSampleBtn');
     this.elements.exportJsonBtn = document.getElementById('exportJson');
     this.elements.exportCsvBtn = document.getElementById('exportCsv');
@@ -89,6 +91,13 @@ const VBSentimentApp = {
       });
 
       this.elements.dropZone.addEventListener('click', () => {
+        this.elements.fileInput?.click();
+      });
+    }
+
+    // Browse button
+    if (this.elements.browseBtn) {
+      this.elements.browseBtn.addEventListener('click', () => {
         this.elements.fileInput?.click();
       });
     }

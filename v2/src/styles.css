@@ -217,7 +217,7 @@ body {
   cursor: pointer;
 }
 
-.upload-zone:hover, .upload-zone.dragover {
+.upload-zone:hover, .upload-zone.drag-over {
   border-color: var(--brand-primary);
   background: #f0f4ff;
 }
