@@ -158,24 +158,38 @@ const VBSentimentApp = {
    * Handle file upload
    */
   async handleFileUpload(file) {
-    if (!file) return;
+    console.log('handleFileUpload called with file:', file);
 
-    if (!file.name.endsWith('.csv')) {
-      UIControls.showError('Please upload a CSV file');
+    if (!file) {
+      console.error('No file provided');
       return;
     }
 
-    UIControls.showLoading(true);
+    if (!file.name.endsWith('.csv')) {
+      console.error('File is not CSV:', file.name);
+      alert('Please upload a CSV file');
+      return;
+    }
+
+    console.log('Starting file processing...');
+    this.showLoading(true);
 
     try {
       // Read file
+      console.log('Reading file...');
       const text = await this.readFileAsText(file);
+      console.log('File read, length:', text.length);
 
       // Parse CSV
+      console.log('Parsing CSV...');
       const parsed = CSVParser.parse(text);
+      console.log('Parsed rows:', parsed.rows.length);
+
       const vbData = CSVParser.extractVBDailyData(parsed.rows);
+      console.log('Extracted VB data:', vbData.length);
 
       // Validate
+      console.log('Validating data...');
       const validation = CSVParser.validate(vbData);
       if (!validation.valid) {
         throw new Error(validation.error);
@@ -187,16 +201,19 @@ const VBSentimentApp = {
 
       // Store raw data
       this.state.rawData = validation.validRows;
+      console.log('Stored raw data:', this.state.rawData.length, 'rows');
 
       // Process data
+      console.log('Processing data...');
       await this.processData();
 
-      UIControls.showSuccess(`Loaded ${this.state.rawData.length} reactions successfully!`);
+      alert(`Loaded ${this.state.rawData.length} reactions successfully!`);
+      console.log('File upload complete!');
     } catch (error) {
       console.error('File upload error:', error);
-      UIControls.showError(`Failed to load file: ${error.message}`);
+      alert(`Failed to load file: ${error.message}`);
     } finally {
-      UIControls.showLoading(false);
+      this.showLoading(false);
     }
   },
 
@@ -338,7 +355,14 @@ const VBSentimentApp = {
    * Update all visualizations
    */
   async updateAllVisualizations() {
-    // Show dashboard
+    console.log('Updating all visualizations...');
+
+    // Hide welcome state, show dashboard
+    const welcomeState = document.getElementById('welcomeState');
+    if (welcomeState) {
+      welcomeState.style.display = 'none';
+    }
+
     if (this.elements.dashboardContainer) {
       this.elements.dashboardContainer.style.display = 'block';
     }
@@ -351,6 +375,8 @@ const VBSentimentApp = {
 
     // Update all charts
     this.updateCharts();
+
+    console.log('All visualizations updated!');
   },
 
   /**
@@ -361,12 +387,39 @@ const VBSentimentApp = {
 
     if (!processedData) return;
 
-    UIControls.updateMetrics({
-      totalReactions: processedData.total,
-      uniqueUsers: processedData.uniqueUsers,
-      avgSentiment: sentimentAnalysis?.overallAverage || 0,
-      startDate: processedData.minDate,
-      endDate: processedData.maxDate
+    console.log('Updating metrics...');
+
+    // Update metric values
+    document.getElementById('metricTotal')?.textContent = Utils.formatNumber(processedData.total);
+    document.getElementById('metricUsers')?.textContent = Utils.formatNumber(processedData.uniqueUsers);
+
+    // Update sentiment score
+    const sentimentScore = sentimentAnalysis?.overallAverage || 0;
+    const sentimentPercent = ((sentimentScore + 1) / 2 * 100).toFixed(0); // Convert -1 to 1 range to 0-100%
+    document.getElementById('metricSentiment')?.textContent = `${sentimentPercent}%`;
+
+    // Calculate engagement rate (% of unique users who responded)
+    const engagementRate = processedData.uniqueUsers > 0 ?
+      ((processedData.total / processedData.uniqueUsers) * 100).toFixed(1) : '0';
+    document.getElementById('metricEngagement')?.textContent = `${engagementRate}%`;
+
+    // Update change indicators (compare last 7 days vs previous 7 days)
+    this.updateMetricChanges();
+  },
+
+  /**
+   * Update metric change indicators
+   */
+  updateMetricChanges() {
+    // For now, show neutral changes
+    // TODO: Implement actual period-over-period comparison
+    const changes = ['metricTotalChange', 'metricSentimentChange', 'metricEngagementChange', 'metricUsersChange'];
+    changes.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = '—';
+        el.className = 'metric-change neutral';
+      }
     });
   },
 
@@ -374,25 +427,39 @@ const VBSentimentApp = {
    * Update insights panel
    */
   updateInsights() {
-    const insightsContainer = document.getElementById('insightsContainer');
-    if (!insightsContainer || !this.state.insights) return;
+    console.log('Updating insights...');
 
-    const topInsights = InsightsGenerator.getTopInsights(this.state.insights, 5);
+    if (!this.state.insights) {
+      console.warn('No insights available');
+      return;
+    }
 
-    insightsContainer.innerHTML = '';
+    // Update top insight banner
+    const topInsight = document.getElementById('topInsight');
+    if (topInsight && this.state.insights.summary) {
+      const insightText = topInsight.querySelector('.insight-text');
+      if (insightText) {
+        insightText.textContent = this.state.insights.summary || 'Data loaded successfully!';
+      }
+    }
 
-    topInsights.forEach(insight => {
-      const card = document.createElement('div');
-      card.className = `insight-card insight-${insight.priority}`;
-      card.innerHTML = `
-        <div class="insight-icon">${insight.icon}</div>
-        <div class="insight-content">
-          <h4>${insight.title}</h4>
-          <p>${insight.message}</p>
-        </div>
-      `;
-      insightsContainer.appendChild(card);
-    });
+    // Update trend insight
+    const trendInsight = document.getElementById('trendInsight');
+    if (trendInsight && this.state.insights.trend) {
+      const insightText = trendInsight.querySelector('.insight-text');
+      if (insightText) {
+        insightText.textContent = this.state.insights.trend;
+      }
+    }
+
+    // Update anomaly insight
+    const anomalyInsight = document.getElementById('anomalyInsight');
+    if (anomalyInsight && this.state.insights.anomaly) {
+      const insightText = anomalyInsight.querySelector('.insight-text');
+      if (insightText) {
+        insightText.textContent = this.state.insights.anomaly;
+      }
+    }
   },
 
   /**
@@ -423,9 +490,10 @@ const VBSentimentApp = {
    * Update sentiment gauge
    */
   updateSentimentGauge() {
-    const canvas = document.getElementById('gaugeChart');
+    const canvas = document.getElementById('sentimentGauge');
     if (!canvas || !this.state.sentimentAnalysis) return;
 
+    console.log('Drawing sentiment gauge...');
     GaugeChart.draw(canvas, this.state.sentimentAnalysis.overallAverage, {
       title: 'Overall Sentiment'
     });
@@ -435,8 +503,10 @@ const VBSentimentApp = {
    * Update sentiment line chart
    */
   updateSentimentLine() {
-    const canvas = document.getElementById('sentimentLine');
+    const canvas = document.getElementById('sentimentTrend');
     if (!canvas || !this.state.processedData) return;
+
+    console.log('Drawing sentiment trend...');
 
     const { days, sentimentSeries } = this.state.processedData;
     const { controlBands, anomalies } = this.state.sentimentAnalysis || {};
@@ -469,9 +539,10 @@ const VBSentimentApp = {
    * Update distribution donut chart
    */
   updateDistributionChart() {
-    const canvas = document.getElementById('distributionChart');
+    const canvas = document.getElementById('emotionDistribution');
     if (!canvas || !this.state.processedData) return;
 
+    console.log('Drawing emotion distribution...');
     const distribution = DataProcessor.calculateDistribution(this.state.rawData);
 
     DonutChart.draw(canvas, {
@@ -479,10 +550,16 @@ const VBSentimentApp = {
       values: [distribution.counts['🤯'], distribution.counts['🤔'], distribution.counts['😴']]
     }, {
       title: 'Emoji Distribution',
-      colors: ['#34d399', '#fbbf24', '#f87171'],
+      colors: ['#f59e0b', '#3b82f6', '#6b7280'],
       showPercentages: true,
       innerRadius: 0.6
     });
+
+    // Update percentage displays
+    const total = distribution.total;
+    document.getElementById('wowPercent')?.textContent = `${((distribution.counts['🤯'] / total) * 100).toFixed(1)}%`;
+    document.getElementById('curiousPercent')?.textContent = `${((distribution.counts['🤔'] / total) * 100).toFixed(1)}%`;
+    document.getElementById('boringPercent')?.textContent = `${((distribution.counts['😴'] / total) * 100).toFixed(1)}%`;
   },
 
   /**
@@ -643,6 +720,15 @@ const VBSentimentApp = {
 
     const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
     await ExportModule.exportAllChartsPNG(canvases, `vb-dashboard-${timestamp}.png`);
+  },
+
+  /**
+   * Show/hide loading overlay
+   */
+  showLoading(show = true) {
+    if (this.elements.loadingOverlay) {
+      this.elements.loadingOverlay.style.display = show ? 'flex' : 'none';
+    }
   }
 };
 
