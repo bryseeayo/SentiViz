@@ -47,16 +47,24 @@ const VBSentimentApp = {
     // Setup event listeners
     this.setupEventListeners();
 
-    // Initialize UI controls
-    UIControls.init({
-      onDateRangeChange: (range) => this.handleDateRangeChange(range),
-      onEmojiFilterChange: (emoji) => this.handleEmojiFilterChange(emoji),
-      onAudienceFilterChange: (audience) => this.handleAudienceFilterChange(audience),
-      onTimeRangeChange: (range) => this.handleTimeRangeChange(range),
-      onRefresh: () => this.refreshVisualizations()
-    });
+    // Initialize UI controls (optional - may not have all elements)
+    try {
+      if (typeof UIControls !== 'undefined') {
+        UIControls.init({
+          onDateRangeChange: (range) => this.handleDateRangeChange(range),
+          onEmojiFilterChange: (emoji) => this.handleEmojiFilterChange(emoji),
+          onAudienceFilterChange: (audience) => this.handleAudienceFilterChange(audience),
+          onTimeRangeChange: (range) => this.handleTimeRangeChange(range),
+          onRefresh: () => this.refreshVisualizations()
+        });
+      }
+    } catch (error) {
+      console.warn('UIControls initialization failed:', error);
+    }
 
     console.log('VB Sentiment Dashboard V2 initialized');
+    console.log('Browse button:', this.elements.browseBtn);
+    console.log('File input:', this.elements.fileInput);
   },
 
   /**
@@ -97,9 +105,20 @@ const VBSentimentApp = {
 
     // Browse button
     if (this.elements.browseBtn) {
-      this.elements.browseBtn.addEventListener('click', () => {
-        this.elements.fileInput?.click();
+      console.log('Setting up browse button click handler');
+      this.elements.browseBtn.addEventListener('click', (e) => {
+        console.log('Browse button clicked!');
+        e.preventDefault();
+        e.stopPropagation();
+        if (this.elements.fileInput) {
+          console.log('Triggering file input click');
+          this.elements.fileInput.click();
+        } else {
+          console.error('File input element not found!');
+        }
       });
+    } else {
+      console.error('Browse button element not found!');
     }
 
     // Load sample data button (if exists)
