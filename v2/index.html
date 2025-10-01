@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>VB Daily Sentiment Dashboard V2</title>
+    <link rel="stylesheet" href="src/styles.css" />
+  </head>
+  <body>
+    <!-- Top Navigation -->
+    <nav class="navbar">
+      <div class="nav-content">
+        <div class="nav-brand">
+          <h1>VB Daily Sentiment</h1>
+          <span class="version-badge">v2</span>
+        </div>
+        <div class="nav-actions">
+          <button id="dateRangeBtn" class="nav-btn">
+            <span class="icon">📅</span>
+            <span class="label">Date Range</span>
+          </button>
+          <button id="exportBtn" class="nav-btn">
+            <span class="icon">⬇</span>
+            <span class="label">Export</span>
+          </button>
+          <a href="../v1/" class="nav-btn secondary">
+            <span class="label">Switch to V1</span>
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Welcome State (shown when no data loaded) -->
+    <div id="welcomeState" class="welcome-state">
+      <div class="welcome-content">
+        <div class="welcome-icon">📊</div>
+        <h2>Welcome to VB Daily Sentiment Dashboard</h2>
+        <p>Upload your survey CSV to visualize reader sentiment, engagement trends, and audience insights.</p>
+        <div class="upload-zone" id="uploadZone">
+          <div class="upload-icon">📁</div>
+          <p class="upload-text">Drop CSV file here or click to browse</p>
+          <input type="file" id="fileInput" accept=".csv,text/csv" hidden />
+          <button id="browseBtn" class="btn-primary">Choose File</button>
+        </div>
+        <div class="welcome-features">
+          <div class="feature">
+            <span class="feature-icon">⚡</span>
+            <span>Real-time Analytics</span>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">🔍</span>
+            <span>Smart Insights</span>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">📈</span>
+            <span>Predictive Trends</span>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">🔒</span>
+            <span>Privacy-First</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Dashboard (hidden until data loaded) -->
+    <div id="dashboard" class="dashboard" style="display: none;">
+      <!-- Smart Insights Banner -->
+      <section class="insights-banner">
+        <div class="insight-card highlight" id="topInsight">
+          <div class="insight-icon">💡</div>
+          <div class="insight-content">
+            <div class="insight-label">Top Insight</div>
+            <div class="insight-text">Load data to see automated insights</div>
+          </div>
+        </div>
+        <div class="insight-card" id="trendInsight">
+          <div class="insight-icon">📊</div>
+          <div class="insight-content">
+            <div class="insight-label">Trend Alert</div>
+            <div class="insight-text">—</div>
+          </div>
+        </div>
+        <div class="insight-card" id="anomalyInsight">
+          <div class="insight-icon">⚠️</div>
+          <div class="insight-content">
+            <div class="insight-label">Anomaly Detected</div>
+            <div class="insight-text">—</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Key Metrics -->
+      <section class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Total Responses</span>
+            <span class="metric-icon">📝</span>
+          </div>
+          <div class="metric-value" id="metricTotal">—</div>
+          <div class="metric-change" id="metricTotalChange">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Avg Sentiment Score</span>
+            <span class="metric-icon">😊</span>
+          </div>
+          <div class="metric-value" id="metricSentiment">—</div>
+          <div class="metric-change" id="metricSentimentChange">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Engagement Rate</span>
+            <span class="metric-icon">🔥</span>
+          </div>
+          <div class="metric-value" id="metricEngagement">—</div>
+          <div class="metric-change" id="metricEngagementChange">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Active Network IDs</span>
+            <span class="metric-icon">👥</span>
+          </div>
+          <div class="metric-value" id="metricUsers">—</div>
+          <div class="metric-change" id="metricUsersChange">—</div>
+        </div>
+      </section>
+
+      <!-- Filters & Controls -->
+      <section class="controls-bar">
+        <div class="control-group">
+          <label>Audience</label>
+          <div class="segmented-control">
+            <input type="radio" name="audience" value="all" id="audAll" checked />
+            <label for="audAll">All</label>
+            <input type="radio" name="audience" value="new" id="audNew" />
+            <label for="audNew">New</label>
+            <input type="radio" name="audience" value="returning" id="audReturning" />
+            <label for="audReturning">Returning</label>
+          </div>
+        </div>
+        <div class="control-group">
+          <label>Time Period</label>
+          <select id="timePeriod" class="select-control">
+            <option value="all">All Time</option>
+            <option value="7d">Last 7 Days</option>
+            <option value="30d">Last 30 Days</option>
+            <option value="90d">Last 90 Days</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>Comparison</label>
+          <select id="comparison" class="select-control">
+            <option value="none">None</option>
+            <option value="prev">Previous Period</option>
+            <option value="wow">Week over Week</option>
+            <option value="mom">Month over Month</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- Main Charts Grid -->
+      <section class="charts-grid">
+        <!-- Sentiment Gauge -->
+        <div class="chart-card spotlight">
+          <div class="chart-header">
+            <div>
+              <h3>Real-Time Sentiment</h3>
+              <p class="chart-subtitle">Overall reader emotion score</p>
+            </div>
+            <button class="chart-action" data-chart="sentiment">⋯</button>
+          </div>
+          <div class="chart-body">
+            <canvas id="sentimentGauge" height="280"></canvas>
+          </div>
+        </div>
+
+        <!-- Sentiment Trend -->
+        <div class="chart-card wide">
+          <div class="chart-header">
+            <div>
+              <h3>Sentiment Over Time</h3>
+              <p class="chart-subtitle">Daily engagement and emotion trends</p>
+            </div>
+            <div class="chart-toolbar">
+              <div class="toggle-group">
+                <button class="toggle-btn active" data-metric="score">Score</button>
+                <button class="toggle-btn" data-metric="emotions">Emotions</button>
+                <button class="toggle-btn" data-metric="volume">Volume</button>
+              </div>
+              <button class="chart-action" data-chart="trend">⋯</button>
+            </div>
+          </div>
+          <div class="chart-body">
+            <canvas id="sentimentTrend" height="320"></canvas>
+          </div>
+        </div>
+
+        <!-- Emotion Distribution -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3>Emotion Breakdown</h3>
+              <p class="chart-subtitle">Current period distribution</p>
+            </div>
+            <button class="chart-action" data-chart="distribution">⋯</button>
+          </div>
+          <div class="chart-body">
+            <canvas id="emotionDistribution" height="280"></canvas>
+            <div class="emotion-stats">
+              <div class="emotion-stat">
+                <span class="emoji">🤯</span>
+                <div class="stat-details">
+                  <span class="stat-label">Wow</span>
+                  <span class="stat-value" id="wowPercent">—</span>
+                </div>
+              </div>
+              <div class="emotion-stat">
+                <span class="emoji">🤔</span>
+                <div class="stat-details">
+                  <span class="stat-label">Curious</span>
+                  <span class="stat-value" id="curiousPercent">—</span>
+                </div>
+              </div>
+              <div class="emotion-stat">
+                <span class="emoji">😴</span>
+                <div class="stat-details">
+                  <span class="stat-label">Boring</span>
+                  <span class="stat-value" id="boringPercent">—</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Velocity Chart -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3>Sentiment Velocity</h3>
+              <p class="chart-subtitle">Rate of change in sentiment</p>
+            </div>
+            <button class="chart-action" data-chart="velocity">⋯</button>
+          </div>
+          <div class="chart-body">
+            <canvas id="velocityChart" height="280"></canvas>
+          </div>
+        </div>
+
+        <!-- Calendar Heatmap -->
+        <div class="chart-card wide">
+          <div class="chart-header">
+            <div>
+              <h3>Activity Calendar</h3>
+              <p class="chart-subtitle">Daily engagement patterns</p>
+            </div>
+            <div class="chart-toolbar">
+              <div class="toggle-group">
+                <button class="toggle-btn active" data-heatmap="volume">Volume</button>
+                <button class="toggle-btn" data-heatmap="wow">Wow</button>
+                <button class="toggle-btn" data-heatmap="sentiment">Sentiment</button>
+              </div>
+              <button class="chart-action" data-chart="calendar">⋯</button>
+            </div>
+          </div>
+          <div class="chart-body">
+            <canvas id="calendarHeatmap" height="240"></canvas>
+          </div>
+        </div>
+
+        <!-- Engagement Funnel -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3>Audience Retention</h3>
+              <p class="chart-subtitle">Cohort analysis</p>
+            </div>
+            <button class="chart-action" data-chart="retention">⋯</button>
+          </div>
+          <div class="chart-body">
+            <canvas id="retentionChart" height="300"></canvas>
+          </div>
+        </div>
+
+        <!-- Top Contributors -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3>Most Active Readers</h3>
+              <p class="chart-subtitle">Top 10 by response count</p>
+            </div>
+            <button class="chart-action" data-chart="contributors">⋯</button>
+          </div>
+          <div class="chart-body">
+            <div id="topContributorsList" class="list-view"></div>
+          </div>
+        </div>
+
+        <!-- Predictive Forecast -->
+        <div class="chart-card wide">
+          <div class="chart-header">
+            <div>
+              <h3>Sentiment Forecast</h3>
+              <p class="chart-subtitle">7-day prediction with confidence intervals</p>
+            </div>
+            <button class="chart-action" data-chart="forecast">⋯</button>
+          </div>
+          <div class="chart-body">
+            <canvas id="forecastChart" height="280"></canvas>
+          </div>
+        </div>
+
+        <!-- Hour of Day Pattern -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3>Response Time Patterns</h3>
+              <p class="chart-subtitle">Hour of day distribution (PT)</p>
+            </div>
+            <button class="chart-action" data-chart="timepattern">⋯</button>
+          </div>
+          <div class="chart-body">
+            <canvas id="timePatternChart" height="280"></canvas>
+          </div>
+        </div>
+
+        <!-- Weekday Performance -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3>Day of Week Performance</h3>
+              <p class="chart-subtitle">Average sentiment by weekday</p>
+            </div>
+            <button class="chart-action" data-chart="weekday">⋯</button>
+          </div>
+          <div class="chart-body">
+            <canvas id="weekdayChart" height="280"></canvas>
+          </div>
+        </div>
+
+        <!-- Transitions Matrix -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3>Emotion Transitions</h3>
+              <p class="chart-subtitle">How readers switch emotions</p>
+            </div>
+            <button class="chart-action" data-chart="transitions">⋯</button>
+          </div>
+          <div class="chart-body">
+            <canvas id="transitionsMatrix" height="280"></canvas>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="chart-card full-width">
+          <div class="chart-header">
+            <div>
+              <h3>Recent Responses</h3>
+              <p class="chart-subtitle">Latest 50 submissions</p>
+            </div>
+            <button class="chart-action" data-chart="recent">⋯</button>
+          </div>
+          <div class="chart-body">
+            <div id="recentActivity" class="table-view"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Export Data</h3>
+          <button class="modal-close" id="closeExportModal">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="export-options">
+            <button class="export-option" data-format="pdf">
+              <span class="export-icon">📄</span>
+              <span class="export-label">PDF Report</span>
+            </button>
+            <button class="export-option" data-format="json">
+              <span class="export-icon">📊</span>
+              <span class="export-label">JSON Data</span>
+            </button>
+            <button class="export-option" data-format="csv">
+              <span class="export-icon">📋</span>
+              <span class="export-label">CSV Export</span>
+            </button>
+            <button class="export-option" data-format="png">
+              <span class="export-icon">🖼️</span>
+              <span class="export-label">PNG Images</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+      <div class="loader"></div>
+      <p>Processing data...</p>
+    </div>
+
+    <!-- Scripts (modular) -->
+    <script src="src/utils/helpers.js"></script>
+    <script src="src/data/parser.js"></script>
+    <script src="src/data/processor.js"></script>
+    <script src="src/analytics/sentiment.js"></script>
+    <script src="src/analytics/forecast.js"></script>
+    <script src="src/analytics/insights.js"></script>
+    <script src="src/charts/gauge.js"></script>
+    <script src="src/charts/line.js"></script>
+    <script src="src/charts/bar.js"></script>
+    <script src="src/charts/heatmap.js"></script>
+    <script src="src/charts/donut.js"></script>
+    <script src="src/ui/controls.js"></script>
+    <script src="src/ui/export.js"></script>
+    <script src="src/app.js"></script>
+  </body>
+</html>
